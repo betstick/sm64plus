@@ -723,7 +723,7 @@ static struct ShaderProgram *gfx_opengl_create_and_load_new_shader(uint32_t shad
     puts("End");*/
 
     const GLchar *sources[2] = { vs_buf, fs_buf };
-    const GLint lengths[2] = { vs_len, fs_len };
+    const GLint lengths[2] = { (GLint)(vs_len), (GLint)(fs_len) };
     GLint success;
 
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -838,7 +838,7 @@ static void gfx_opengl_shader_get_info(struct ShaderProgram *prg, uint8_t *num_i
 static GLuint gfx_opengl_new_texture(void) {
     if (num_textures >= tex_cache_size) {
         tex_cache_size += TEX_CACHE_STEP;
-        tex_cache = realloc(tex_cache, sizeof(struct GLTexture) * tex_cache_size);
+        tex_cache = (struct GLTexture*)realloc(tex_cache, sizeof(struct GLTexture) * tex_cache_size);
         // Invalidate to prevent pointing to garbage
         opengl_tex[0] = NULL;
         opengl_tex[1] = NULL;
@@ -935,7 +935,7 @@ static void gfx_opengl_init(void) {
 #endif
     
     tex_cache_size = TEX_CACHE_STEP;
-    tex_cache = calloc(tex_cache_size, sizeof(struct GLTexture));
+    tex_cache = (struct GLTexture *)calloc(tex_cache_size, sizeof(struct GLTexture));
     if (!tex_cache) {
         // Handling memory allocation failure
         fprintf(stderr, "Out of memory allocating texture cache!\n");
@@ -1071,4 +1071,9 @@ struct GfxRenderingAPI gfx_opengl_api = {
     gfx_opengl_start_frame,
     gfx_opengl_end_frame,
     gfx_opengl_finish_render
+};
+
+void swap_window(void* w)
+{
+    SDL_GL_SwapWindow(w);
 };

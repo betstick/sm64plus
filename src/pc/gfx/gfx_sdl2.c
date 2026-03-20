@@ -215,10 +215,11 @@ static void gfx_sdl_init(const char *game_name, bool start_in_fullscreen) {
         set_fullscreen(true, false);
     }
 
-    if (configMouseCam) {
+    //TODO: fix this so it is only active during the game, not during the menu
+    /*if (configMouseCam) {
         SDL_SetRelativeMouseMode(true);
         relative_mouse_mode_on = true;
-    }
+    }*/
 
     sdl_gl_ctx = SDL_GL_CreateContext(wnd);
 
@@ -474,4 +475,20 @@ struct SDL_Window* get_sdl_window()
 SDL_GLContext* get_sdl_gl_context()
 {
     return sdl_gl_ctx;
+};
+
+bool poll_events(SDL_Event** event)
+{
+    if(*event == NULL)
+        *event = (SDL_Event*)malloc(sizeof(SDL_Event));
+    return SDL_PollEvent(*event);
+};
+
+bool should_close(SDL_Event** event)
+{
+    if((*event)->type == SDL_QUIT)
+        return true;
+    if ((*event)->type == SDL_WINDOWEVENT && (*event)->window.event == SDL_WINDOWEVENT_CLOSE && (*event)->window.windowID == SDL_GetWindowID(get_sdl_window()))
+        return true;
+    return false;
 };

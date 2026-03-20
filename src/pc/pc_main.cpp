@@ -1,3 +1,5 @@
+//#include "SDL_events.h"
+//#include "SDL_timer.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -137,9 +139,9 @@ extern "C" {
     #endif
         
         submit_audio_frame();
-        
+
         gfx_end_frame();
-        
+
         gfx_start_frame();
         if (configFrameRate) {
             patch_interpolations();
@@ -149,14 +151,6 @@ extern "C" {
         }
         exec_display_list(gGfxSPTask);
         gfx_end_frame();
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame();
-        ImGui::NewFrame();
-        ImGui::Begin("Test");
-        if(ImGui::Button("Stuff"))
-        printf("stuff\n");
-        ImGui::End();
-        ImGui::Render();
     }
 
     #ifdef TARGET_WEB
@@ -284,18 +278,57 @@ void main_func(const char* gfx_dir) {
 #else
 
     ImGui::CreateContext();    
-    const char* glsl_version = "#version 300 es";
+    const char* glsl_version = "#version 120";
     ImGui_ImplSDL2_InitForOpenGL(get_sdl_window(),get_sdl_gl_context());
     ImGui_ImplOpenGL3_Init(glsl_version);
     
+    bool close = false;
+    bool play_game = false;
 
-    inited = 1;
-    while (1) {
-        
-       
+    while(1)
+    {
+        bool done = false;
+        SDL_Event* event = nullptr;
+        while (poll_events(&event))
+        {
+            ImGui_ImplSDL2_ProcessEvent(event);
+            
+            if(should_close(&event))
+                close = true;
+        }
 
-        wm_api->main_loop(produce_one_frame);
-       
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+        ImGui::Begin("Test");
+        if(ImGui::Button("Play Game"))
+            play_game = true;
+
+        bool skip_cutscenes = configSkipCutscenes;
+        bool skip_mission_select = configSkipMissionSelect;
+        ImGui::Checkbox("configSkipMissionSelect",&skip_mission_select);
+        ImGui::Checkbox("configSkipCutscenes",&skip_cutscenes);
+        configSkipMissionSelect = skip_mission_select;
+        configSkipCutscenes = skip_cutscenes;
+
+        if(ImGui::Button("Exit"))
+            close = true;
+        ImGui::End();
+        ImGui::Render();
+
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        swap_window(get_sdl_window());
+
+        if(close || play_game)
+            break;
+    }
+
+    if(!close)
+    {
+        inited = 1;
+        while (1) {
+            wm_api->main_loop(produce_one_frame);
+        }
     }
 #endif
 }
@@ -316,9 +349,6 @@ int WINAPI WinMain(UNUSED HINSTANCE hInstance, UNUSED HINSTANCE hPrevInstance, U
 }
 #else
 int main(int argc, const char *argv[]) {
-
-    
-
     main_func(argc > 1 ? argv[1] : NULL);
     return 0;
 }

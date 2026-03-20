@@ -5,4 +5,6 @@
 
 extern struct GfxRenderingAPI gfx_opengl_api;
 
+void swap_window(void* w);
+
 #endif
