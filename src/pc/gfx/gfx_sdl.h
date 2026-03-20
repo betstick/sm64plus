@@ -5,4 +5,8 @@
 
 extern struct GfxWindowManagerAPI gfx_sdl;
 
+extern struct SDL_Window* get_sdl_window();
+
+extern struct SDL_GLContext* get_sdl_gl_context();
+
 #endif

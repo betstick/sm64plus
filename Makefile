@@ -276,12 +276,14 @@ TEXTURE_DIR    := textures
 ACTOR_DIR      := actors
 LEVEL_DIRS     := $(patsubst levels/%,%,$(dir $(wildcard levels/*/header.h)))
 
+IMGUI_DIR := imgui
+
 # Directories containing source files
 SRC_DIRS := src src/engine src/game src/audio src/menu src/buffers actors levels bin bin/$(VERSION) data assets sound
 ifeq ($(TARGET_N64),1)
   SRC_DIRS += asm lib
 else
-  SRC_DIRS += src/pc src/pc/gfx src/pc/audio src/pc/controller
+  SRC_DIRS += src/pc src/pc/gfx src/pc/audio src/pc/controller $(IMGUI_DIR)
 endif
 
 BIN_DIRS := bin bin/$(VERSION)
@@ -303,6 +305,9 @@ ULTRA_C_FILES     := $(foreach dir,$(ULTRA_SRC_DIRS),$(wildcard $(dir)/*.c))
 GODDARD_C_FILES   := $(foreach dir,$(GODDARD_SRC_DIRS),$(wildcard $(dir)/*.c))
 ifeq ($(TARGET_N64),1)
   ULTRA_S_FILES   := $(foreach dir,$(ULTRA_SRC_DIRS),$(wildcard $(dir)/*.s))
+else
+  CXX_FILES += $(IMGUI_DIR)/backends/imgui_impl_sdl2.cpp
+  CXX_FILES += $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
 endif
 GENERATED_C_FILES := $(BUILD_DIR)/assets/mario_anim_data.c $(BUILD_DIR)/assets/demo_data.c \
   $(addprefix $(BUILD_DIR)/bin/,$(addsuffix _skybox.c,$(notdir $(basename $(wildcard textures/skyboxes/*.png)))))
@@ -370,6 +375,9 @@ endif
 INCLUDE_DIRS := include $(BUILD_DIR) $(BUILD_DIR)/include src .
 ifeq ($(TARGET_N64),1)
   INCLUDE_DIRS += include/libc
+else
+  INCLUDE_DIRS += $(IMGUI_DIR)/backends
+  INCLUDE_DIRS += $(IMGUI_DIR)
 endif
 
 C_DEFINES := $(foreach d,$(DEFINES),-D$(d))
@@ -669,7 +677,10 @@ else
   endif
 endif
 
-ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS) $(GODDARD_SRC_DIRS) $(ULTRA_SRC_DIRS) $(ULTRA_BIN_DIRS) $(BIN_DIRS) $(TEXTURE_DIRS) $(TEXT_DIRS) $(SOUND_SAMPLE_DIRS) $(addprefix levels/,$(LEVEL_DIRS)) rsp include) $(MIO0_DIR) $(addprefix $(MIO0_DIR)/,$(VERSION)) $(SOUND_BIN_DIR) $(SOUND_BIN_DIR)/sequences/$(VERSION)
+#i don't know where to put this
+IMGUI_DIRS := imgui imgui/backends
+
+ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS) $(GODDARD_SRC_DIRS) $(IMGUI_DIRS) $(ULTRA_SRC_DIRS) $(ULTRA_BIN_DIRS) $(BIN_DIRS) $(TEXTURE_DIRS) $(TEXT_DIRS) $(SOUND_SAMPLE_DIRS) $(addprefix levels/,$(LEVEL_DIRS)) rsp include) $(MIO0_DIR) $(addprefix $(MIO0_DIR)/,$(VERSION)) $(SOUND_BIN_DIR) $(SOUND_BIN_DIR)/sequences/$(VERSION)
 
 # Make sure build directory exists before compiling anything
 DUMMY != mkdir -p $(ALL_DIRS)
@@ -859,6 +870,7 @@ $(GLOBAL_ASM_DEP).$(NON_MATCHING):
 #==============================================================================#
 
 # Compile C/C++ code
+
 $(BUILD_DIR)/%.o: %.cpp
 	$(call print,Compiling:,$<,$@)
 	@$(CXX) -fsyntax-only $(CFLAGS) -MMD -MP -MT $@ -MF $(BUILD_DIR)/$*.d $<

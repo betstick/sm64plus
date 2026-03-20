@@ -49,6 +49,7 @@
 
 #define GFX_API_NAME "OpenGL"
 
+static SDL_GLContext *sdl_gl_ctx;
 static SDL_Window *wnd;
 static int inverted_scancode_table[512];
 
@@ -219,7 +220,7 @@ static void gfx_sdl_init(const char *game_name, bool start_in_fullscreen) {
         relative_mouse_mode_on = true;
     }
 
-    SDL_GL_CreateContext(wnd);
+    sdl_gl_ctx = SDL_GL_CreateContext(wnd);
 
     SDL_GL_SetSwapInterval(configVSync ? 1 : 0);
 
@@ -463,4 +464,14 @@ struct GfxWindowManagerAPI gfx_sdl = {
     gfx_sdl_swap_buffers_begin,
     gfx_sdl_swap_buffers_end,
     gfx_sdl_get_time
+};
+
+struct SDL_Window* get_sdl_window()
+{
+    return wnd;
+};
+
+SDL_GLContext* get_sdl_gl_context()
+{
+    return sdl_gl_ctx;
 };

@@ -12,19 +12,20 @@
 #define FOR_WINDOWS 0
 #endif
 
+#define GL_GLEXT_PROTOTYPES 1
+
 #if FOR_WINDOWS
 #include <GL/glew.h>
 #include "SDL.h"
-#define GL_GLEXT_PROTOTYPES 1
 #include "SDL_opengl.h"
 #else
 #ifndef TARGET_MACOS
+#include <GL/glx.h>
 #include <SDL2/SDL.h>
 #else
 #include <SDL_opengl.h>
 #include <stdio.h>
 #endif
-#define GL_GLEXT_PROTOTYPES 1
 #ifndef TARGET_MACOS
 #include <SDL2/SDL_opengles2.h>
 #endif
